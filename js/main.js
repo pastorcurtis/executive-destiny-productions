@@ -21,24 +21,58 @@
     }, 2500);
   }
 
-  /* --- Scroll Progress Bar --- */
+  /* --- Unified Scroll Handler (rAF-throttled) --- */
   var scrollProgress = document.querySelector('.scroll-progress');
-  if (scrollProgress) {
-    window.addEventListener('scroll', function () {
-      var scrollTop = window.scrollY;
-      var docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      var progress = docHeight > 0 ? scrollTop / docHeight : 0;
+  var nav = document.querySelector('.nav');
+  var scrollTopBtn = document.querySelector('.scroll-top');
+  var scrollCue = document.querySelector('.scroll-cue');
+  var _parallaxImages = document.querySelectorAll('.about-teaser-image img');
+  var _scrollTicking = false;
+
+  function onScroll() {
+    var scrollY = window.scrollY;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+    /* Scroll progress bar */
+    if (scrollProgress) {
+      var progress = docHeight > 0 ? scrollY / docHeight : 0;
       scrollProgress.style.transform = 'scaleX(' + progress + ')';
-    }, { passive: true });
+    }
+
+    /* Sticky nav */
+    if (nav) {
+      nav.classList.toggle('scrolled', scrollY > 10);
+    }
+
+    /* Scroll-to-top button */
+    if (scrollTopBtn) {
+      scrollTopBtn.classList.toggle('visible', scrollY > 600);
+    }
+
+    /* Scroll cue fade */
+    if (scrollCue) {
+      scrollCue.style.opacity = scrollY > 100 ? '0' : '1';
+      scrollCue.style.transition = 'opacity 0.4s ease';
+    }
+
+    /* Parallax images */
+    _parallaxImages.forEach(function (img) {
+      var parent = img.closest('section, .about-teaser');
+      if (!parent) parent = img.parentElement;
+      var rect = parent.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+      img.style.transform = 'scale(1) translateY(' + (rect.top * 0.08) + 'px)';
+    });
+
+    _scrollTicking = false;
   }
 
-  /* --- Sticky Nav --- */
-  var nav = document.querySelector('.nav');
-  if (nav) {
-    window.addEventListener('scroll', function () {
-      nav.classList.toggle('scrolled', window.scrollY > 10);
-    }, { passive: true });
-  }
+  window.addEventListener('scroll', function () {
+    if (!_scrollTicking) {
+      requestAnimationFrame(onScroll);
+      _scrollTicking = true;
+    }
+  }, { passive: true });
 
   /* --- Mobile Menu Toggle --- */
   var toggle = document.querySelector('.nav-toggle');
@@ -183,21 +217,39 @@
     }
   });
 
-  /* --- Parallax on Multiple Images --- */
-  var parallaxImages = document.querySelectorAll('.hero-image img, .about-teaser-image img');
-  if (parallaxImages.length > 0) {
-    window.addEventListener('scroll', function () {
-      parallaxImages.forEach(function (img) {
-        var parent = img.closest('section, .about-teaser');
-        if (!parent) parent = img.parentElement;
-        var rect = parent.getBoundingClientRect();
-        if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+  /* --- Carousel Arrow + Dot Navigation --- */
+  var carouselTrack = document.querySelector('.carousel-track');
+  var prevBtn = document.querySelector('.carousel-prev');
+  var nextBtn = document.querySelector('.carousel-next');
+  var dots = document.querySelectorAll('.carousel-dot');
 
-        var speed = img.closest('.hero-image') ? 0.15 : 0.08;
-        var yPos = (rect.top * speed);
-        img.style.transform = 'scale(1) translateY(' + yPos + 'px)';
+  if (carouselTrack && prevBtn && nextBtn && dots.length > 0) {
+    var cards = carouselTrack.querySelectorAll('.product-card');
+    var cardWidth = cards.length > 0 ? cards[0].offsetWidth + 32 : 432;
+
+    function updateDots() {
+      var scrollPos = carouselTrack.scrollLeft;
+      var activeIndex = Math.round(scrollPos / cardWidth);
+      dots.forEach(function (dot, i) {
+        dot.classList.toggle('active', i === activeIndex);
       });
-    }, { passive: true });
+    }
+
+    prevBtn.addEventListener('click', function () {
+      carouselTrack.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+    });
+
+    nextBtn.addEventListener('click', function () {
+      carouselTrack.scrollBy({ left: cardWidth, behavior: 'smooth' });
+    });
+
+    dots.forEach(function (dot, i) {
+      dot.addEventListener('click', function () {
+        carouselTrack.scrollTo({ left: i * cardWidth, behavior: 'smooth' });
+      });
+    });
+
+    carouselTrack.addEventListener('scroll', updateDots, { passive: true });
   }
 
   /* --- Section Rule Line-Draw Animation --- */
@@ -282,53 +334,89 @@
     });
   });
 
-  /* --- Scroll-to-Top Button --- */
-  var scrollTopBtn = document.querySelector('.scroll-top');
-  if (scrollTopBtn) {
-    window.addEventListener('scroll', function () {
-      scrollTopBtn.classList.toggle('visible', window.scrollY > 600);
-    }, { passive: true });
+  /* --- Hero Mouse-Tracking Spotlight --- */
+  var heroSection = document.querySelector('.hero');
+  var spotlightGlow = document.querySelector('.hero-spotlight-glow');
+  if (heroSection && spotlightGlow) {
+    heroSection.addEventListener('mousemove', function (e) {
+      var rect = heroSection.getBoundingClientRect();
+      spotlightGlow.style.left = (e.clientX - rect.left) + 'px';
+      spotlightGlow.style.top = (e.clientY - rect.top) + 'px';
+      spotlightGlow.style.opacity = '1';
+    });
+    heroSection.addEventListener('mouseleave', function () {
+      spotlightGlow.style.opacity = '0';
+    });
+  }
 
+  /* --- Scroll-to-Top Click Handler --- */
+  if (scrollTopBtn) {
     scrollTopBtn.addEventListener('click', function () {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
 
-  /* --- Hide Scroll Cue on Scroll --- */
-  var scrollCue = document.querySelector('.scroll-cue');
-  if (scrollCue) {
-    window.addEventListener('scroll', function () {
-      if (window.scrollY > 100) {
-        scrollCue.style.opacity = '0';
-        scrollCue.style.transition = 'opacity 0.4s ease';
-      } else {
-        scrollCue.style.opacity = '1';
+  /* --- Form Loading State on Submit --- */
+  document.querySelectorAll('form[name]').forEach(function (form) {
+    form.addEventListener('submit', function () {
+      var btn = form.querySelector('button[type="submit"]');
+      if (btn) {
+        btn.classList.add('btn-loading');
+        btn.setAttribute('disabled', 'true');
       }
-    }, { passive: true });
-  }
-
-  /* --- Form Success State --- */
-  var forms = document.querySelectorAll('form[data-netlify]');
-  forms.forEach(function (form) {
-    form.addEventListener('submit', function (e) {
-      var successEl = form.parentElement.querySelector('.form-success');
-      if (!successEl) return;
-
-      e.preventDefault();
-      var formData = new FormData(form);
-
-      fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(formData).toString()
-      }).then(function () {
-        form.style.display = 'none';
-        successEl.classList.add('show');
-      }).catch(function () {
-        form.submit();
-      });
     });
   });
+
+  /* --- Form Success State (FormSubmit.co redirect with #success hash) --- */
+  if (window.location.hash === '#success') {
+    var forms = document.querySelectorAll('form[name]');
+    forms.forEach(function (form) {
+      var successEl = form.parentElement.querySelector('.form-success');
+      if (successEl) {
+        form.style.display = 'none';
+        successEl.classList.add('show');
+        /* Announce to screen readers */
+        successEl.setAttribute('role', 'alert');
+        successEl.setAttribute('aria-live', 'polite');
+      }
+    });
+  }
+
+  /* --- FAQ Accordion --- */
+  document.querySelectorAll('.faq-question').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var item = btn.closest('.faq-item');
+      var isOpen = item.classList.contains('open');
+      /* Close all items first */
+      document.querySelectorAll('.faq-item.open').forEach(function (openItem) {
+        openItem.classList.remove('open');
+        openItem.querySelector('.faq-question').setAttribute('aria-expanded', 'false');
+      });
+      /* Toggle clicked item */
+      if (!isOpen) {
+        item.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      }
+    });
+  });
+
+  /* --- Carousel Keyboard Navigation --- */
+  if (carouselTrack) {
+    var kbCardWidth = carouselTrack.querySelector('.product-card')
+      ? carouselTrack.querySelector('.product-card').offsetWidth + 32 : 432;
+    carouselTrack.setAttribute('role', 'region');
+    carouselTrack.setAttribute('aria-label', 'Product carousel');
+    carouselTrack.setAttribute('tabindex', '0');
+    carouselTrack.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        carouselTrack.scrollBy({ left: kbCardWidth, behavior: 'smooth' });
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        carouselTrack.scrollBy({ left: -kbCardWidth, behavior: 'smooth' });
+      }
+    });
+  }
 
   /* --- Year in Footer --- */
   var yearEl = document.querySelector('.footer-year');

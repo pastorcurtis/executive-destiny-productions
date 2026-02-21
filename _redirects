@@ -1,3 +1,10 @@
-# Netlify redirects
+# Netlify redirects — clean URLs
+/about       /about.html       200
+/products    /products.html     200
+/wholesale   /wholesale.html    200
+/government  /government.html   200
+/contact     /contact.html      200
+/privacy     /privacy.html      200
+
 # Custom 404
-/*    /404.html   404
+/*           /404.html          404
