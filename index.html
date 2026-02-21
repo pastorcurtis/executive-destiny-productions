@@ -51,7 +51,7 @@
   </div>
 
   <!-- ========== NAVIGATION ========== -->
-  <nav class="nav" role="navigation" aria-label="Main navigation">
+  <nav class="nav" aria-label="Main navigation">
     <div class="nav-inner">
       <div class="nav-links-left">
         <a href="index.html" class="nav-link active">Home</a>
@@ -87,11 +87,13 @@
     <a href="https://executivedestinyproductions.org/store" target="_blank" rel="noopener" class="btn btn-primary">Shop Now</a>
   </div>
 
+  <main>
+
   <!-- ========== HERO (Cinematic Split-Screen) ========== -->
   <section class="hero" id="main-content">
     <div class="hero-content">
       <span class="label">Executive Destiny Productions</span>
-      <h1>The New Standard in <span class="accent">Paper Goods</span></h1>
+      <h1>An Elevated Expression in <span class="accent">Paper</span></h1>
       <hr class="hero-rule">
       <p class="hero-tagline">Soft as freshly driven snow. Bold as the woman who built it.<br>Detroit-made tissue &amp; wipes — now in retailers, agencies, and institutions nationwide.</p>
       <div class="hero-buttons">
@@ -412,6 +414,8 @@
     </div>
   </section>
 
+  </main>
+
   <!-- ========== FOOTER ========== -->
   <footer class="footer">
     <div class="footer-watermark">Snobella</div>
@@ -438,7 +442,7 @@
         <div>
           <div class="footer-heading">Quick Links</div>
           <div class="footer-links">
-            <a href="about.html">About</a>
+            <a href="about.html">About Us</a>
             <a href="products.html">Products</a>
             <a href="wholesale.html">Wholesale</a>
             <a href="government.html">Government</a>
@@ -507,7 +511,11 @@
     },
     "telephone": "+18003134354",
     "email": "execute.d.pro@gmail.com",
-    "sameAs": [],
+    "sameAs": [
+      "https://www.facebook.com/",
+      "https://www.instagram.com/",
+      "https://www.linkedin.com/"
+    ],
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+18003134354",
@@ -532,24 +540,27 @@
   </script>
 
   <script type="application/ld+json">
-  [{
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": "Snobella Premium Facial Tissue",
-    "description": "Premium 2-ply facial tissue engineered for homes, offices, and institutions. Soft enough for a newborn, durable enough for institutional use.",
-    "brand": { "@type": "Brand", "name": "Snobella" },
-    "image": "https://executivedestinyproductions.org/images/snobella-2-boxes.jpg",
-    "manufacturer": { "@type": "Organization", "name": "Executive Destiny Productions, LLC" }
-  },
   {
     "@context": "https://schema.org",
-    "@type": "Product",
-    "name": "Snobella Baby Wipes",
-    "description": "Gentle, hypoallergenic formula trusted by parents and pediatric facilities. Safe for the most sensitive skin.",
-    "brand": { "@type": "Brand", "name": "Snobella" },
-    "image": "https://executivedestinyproductions.org/images/baby-wipes.jpg",
-    "manufacturer": { "@type": "Organization", "name": "Executive Destiny Productions, LLC" }
-  }]
+    "@graph": [
+      {
+        "@type": "Product",
+        "name": "Snobella Premium Facial Tissue",
+        "description": "Premium 2-ply facial tissue engineered for homes, offices, and institutions. Soft enough for a newborn, durable enough for institutional use.",
+        "brand": { "@type": "Brand", "name": "Snobella" },
+        "image": "https://executivedestinyproductions.org/images/snobella-2-boxes.jpg",
+        "manufacturer": { "@type": "Organization", "name": "Executive Destiny Productions, LLC" }
+      },
+      {
+        "@type": "Product",
+        "name": "Snobella Baby Wipes",
+        "description": "Gentle, hypoallergenic formula trusted by parents and pediatric facilities. Safe for the most sensitive skin.",
+        "brand": { "@type": "Brand", "name": "Snobella" },
+        "image": "https://executivedestinyproductions.org/images/baby-wipes.jpg",
+        "manufacturer": { "@type": "Organization", "name": "Executive Destiny Productions, LLC" }
+      }
+    ]
+  }
   </script>
 
   <!-- JavaScript -->
