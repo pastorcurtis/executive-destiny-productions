@@ -27,7 +27,9 @@
   var scrollTopBtn = document.querySelector('.scroll-top');
   var scrollCue = document.querySelector('.scroll-cue');
   var _parallaxImages = document.querySelectorAll('.about-teaser-image img');
+  var mobileMenu = document.querySelector('.mobile-menu');
   var _scrollTicking = false;
+  var _lastScrollY = 0;
 
   function onScroll() {
     var scrollY = window.scrollY;
@@ -39,9 +41,21 @@
       scrollProgress.style.transform = 'scaleX(' + progress + ')';
     }
 
-    /* Sticky nav */
+    /* Sticky nav — scrolled + shrunk + hide/reveal */
     if (nav) {
       nav.classList.toggle('scrolled', scrollY > 10);
+      nav.classList.toggle('shrunk', scrollY > 80);
+
+      /* Hide on scroll down, reveal on scroll up */
+      var mobileMenuOpen = mobileMenu && mobileMenu.classList.contains('open');
+      if (!mobileMenuOpen) {
+        if (scrollY > _lastScrollY && scrollY > 200) {
+          nav.classList.add('nav-hidden');
+        } else {
+          nav.classList.remove('nav-hidden');
+        }
+      }
+      _lastScrollY = scrollY;
     }
 
     /* Scroll-to-top button */
@@ -76,12 +90,12 @@
 
   /* --- Mobile Menu Toggle --- */
   var toggle = document.querySelector('.nav-toggle');
-  var mobileMenu = document.querySelector('.mobile-menu');
 
   if (toggle && mobileMenu) {
     toggle.addEventListener('click', function () {
       var isOpen = toggle.classList.toggle('open');
       mobileMenu.classList.toggle('open');
+      nav.classList.toggle('mobile-open', isOpen);
       toggle.setAttribute('aria-expanded', isOpen);
       document.body.style.overflow = isOpen ? 'hidden' : '';
     });
@@ -90,6 +104,7 @@
       link.addEventListener('click', function () {
         toggle.classList.remove('open');
         mobileMenu.classList.remove('open');
+        nav.classList.remove('mobile-open');
         toggle.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
       });

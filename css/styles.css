@@ -394,7 +394,7 @@ p {
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   z-index: 1000;
-  transition: background 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out), border-color 0.4s var(--ease-out);
+  transition: background 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out), border-color 0.4s var(--ease-out), height 0.4s var(--ease-out), transform 0.35s var(--ease-out);
   animation: navSlideDown 0.7s var(--ease-out) 0.1s both;
 }
 
@@ -402,6 +402,34 @@ p {
   background: rgba(255, 255, 255, 0.97);
   box-shadow: 0 1px 24px rgba(94, 22, 19, 0.06);
   border-bottom-color: transparent;
+}
+
+/* --- Shrinking Nav on Scroll --- */
+.nav.shrunk {
+  height: 60px;
+}
+
+.nav.shrunk .nav-logo {
+  font-size: 2.2rem;
+}
+
+.nav.shrunk .nav-links-left,
+.nav.shrunk .nav-links-right {
+  gap: 28px;
+}
+
+.nav.shrunk .nav-link {
+  padding: 5px 12px;
+}
+
+.nav.shrunk .nav-cta {
+  padding: 8px 22px;
+  font-size: 0.7rem;
+}
+
+/* --- Hide/Reveal Nav on Scroll Direction --- */
+.nav.nav-hidden {
+  transform: translateY(-100%);
 }
 
 .nav-inner {
@@ -419,6 +447,7 @@ p {
   display: flex;
   align-items: center;
   gap: 36px;
+  transition: gap 0.35s var(--ease-out);
 }
 
 .nav-link {
@@ -429,45 +458,79 @@ p {
   text-transform: uppercase;
   color: var(--black);
   position: relative;
-  padding: 4px 0;
+  padding: 6px 14px;
+  border-radius: 100px;
+  transition: color 0.35s var(--ease-out), padding 0.35s var(--ease-out);
 }
 
-.nav-link::after {
+/* Pill-shaped hover highlight */
+.nav-link::before {
   content: '';
   position: absolute;
-  bottom: -2px;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: var(--burgundy);
-  transition: all 0.35s var(--ease-out);
-  transform: translateX(-50%);
+  inset: 0;
+  border-radius: 100px;
+  background: rgba(94, 22, 19, 0.08);
+  transform: scale(0.85);
+  opacity: 0;
+  transition: transform 0.35s var(--ease-out), opacity 0.35s var(--ease-out);
 }
 
-.nav-link:hover::after,
-.nav-link.active::after {
-  width: 100%;
+.nav-link:hover::before {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.nav-link.active::before {
+  transform: scale(1);
+  opacity: 1;
+  background: rgba(94, 22, 19, 0.1);
+}
+
+.nav-link:active::before {
+  background: rgba(94, 22, 19, 0.14);
 }
 
 .nav-link:hover {
   color: var(--burgundy);
 }
 
+/* Disable pill on mobile menu links */
+.mobile-menu .nav-link::before {
+  display: none;
+}
+
 .nav-logo {
   font-family: 'Brittany Signature', cursive;
   font-size: 2.8rem;
   letter-spacing: 0.02em;
-  color: var(--burgundy);
   text-transform: none;
   position: relative;
   line-height: 1;
   -webkit-text-stroke: 0.6px var(--burgundy);
-  text-shadow: 0 0 1px rgba(94, 22, 19, 0.3);
+  /* Shimmer gradient — default shows solid burgundy */
+  background: linear-gradient(
+    90deg,
+    var(--burgundy) 0%,
+    var(--burgundy) 40%,
+    var(--pink) 50%,
+    var(--burgundy) 60%,
+    var(--burgundy) 100%
+  );
+  background-size: 200% 100%;
+  background-position: 100% center;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: transform 0.35s var(--ease-out),
+              background-position 0.6s var(--ease-out),
+              filter 0.5s var(--ease-out),
+              font-size 0.35s var(--ease-out);
 }
 
 .nav-cta {
   padding: 10px 28px;
   font-size: 0.72rem;
+  transition: padding 0.35s var(--ease-out), font-size 0.35s var(--ease-out);
 }
 
 /* Mobile menu toggle */
@@ -1334,38 +1397,111 @@ p {
 /* --- Mobile Nav Overlay (Premium) --- */
 .mobile-menu {
   position: fixed;
-  top: var(--nav-height);
+  top: 0;
   left: 0;
   width: 100%;
-  height: calc(100vh - var(--nav-height));
-  background: var(--white);
+  height: 100vh;
+  background: var(--burgundy);
   z-index: 999;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 28px;
+  gap: 20px;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transform: translateY(-10px);
-  transition: opacity 0.4s var(--ease-out), visibility 0.4s, transform 0.4s var(--ease-out);
+  /* Circle reveal from hamburger position (top-right) */
+  clip-path: circle(0% at calc(100% - 40px) 33px);
+  transition: clip-path 0.6s var(--ease-out), opacity 0.3s ease, visibility 0.6s;
 }
 
 .mobile-menu.open {
   opacity: 1;
   visibility: visible;
   pointer-events: all;
-  transform: translateY(0);
+  clip-path: circle(150% at calc(100% - 40px) 33px);
+}
+
+/* Decorative "S" watermark behind mobile menu links */
+.mobile-menu::before {
+  content: 'S';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Brittany Signature', cursive;
+  font-size: clamp(20rem, 50vw, 35rem);
+  color: rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+  z-index: 0;
 }
 
 .mobile-menu .nav-link {
-  font-size: 1.1rem;
-  letter-spacing: 0.14em;
+  font-size: 1.8rem;
+  letter-spacing: 0.1em;
+  color: var(--white);
+  font-weight: 600;
+  padding: 8px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.mobile-menu .nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--pink);
+  transform: translateX(-50%);
+  transition: width 0.35s var(--ease-out);
+}
+
+.mobile-menu .nav-link:hover::after,
+.mobile-menu .nav-link.active::after {
+  width: 100%;
+}
+
+.mobile-menu .nav-link:hover {
+  color: var(--pink);
 }
 
 .mobile-menu .btn {
-  margin-top: 12px;
+  margin-top: 24px;
+  background: var(--white);
+  color: var(--burgundy);
+  border: none;
+  padding: 14px 36px;
+  font-size: 0.82rem;
+  z-index: 1;
+}
+
+.mobile-menu .btn:hover {
+  background: var(--pink);
+  color: var(--burgundy);
+}
+
+/* Nav transparent when mobile menu is open */
+.nav.mobile-open {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  border-bottom-color: transparent;
+}
+
+.nav.mobile-open .nav-logo {
+  -webkit-text-fill-color: var(--white);
+  -webkit-text-stroke-color: var(--white);
+  filter: none;
+}
+
+.nav.mobile-open .nav-toggle span {
+  background: var(--white);
 }
 
 /* --- Page Header (Interior — Premium) --- */
@@ -2424,12 +2560,9 @@ p {
 
 /* --- Nav Logo Hover --- */
 .nav-logo:hover {
-  color: var(--dark-rose);
-  transform: scale(1.05);
-}
-
-.nav-logo {
-  transition: all 0.35s var(--ease-out);
+  transform: scale(1.08);
+  background-position: -100% center;
+  filter: drop-shadow(0 0 8px rgba(94, 22, 19, 0.25));
 }
 
 /* --- Enhanced Card Hover (color background shift) --- */
@@ -2469,8 +2602,8 @@ p {
 
 .nav-link:focus-visible {
   outline: 2px solid var(--burgundy);
-  outline-offset: 4px;
-  border-radius: 2px;
+  outline-offset: 2px;
+  border-radius: 100px;
 }
 
 input:focus-visible,
@@ -2892,6 +3025,8 @@ select:focus-visible {
   .nav-toggle { display: flex; }
   .nav-inner { padding: 0 20px; }
   .nav-logo { font-size: 2rem; }
+  .nav.shrunk { height: 54px; }
+  .nav.shrunk .nav-logo { font-size: 1.7rem; }
 
   .hero-content {
     padding: 40px 24px 50px;
@@ -3009,4 +3144,16 @@ select:focus-visible {
   .nav { animation: none; opacity: 1; transform: none; }
   .reveal, .reveal-left, .reveal-right, .reveal-scale { opacity: 1; transform: none; }
   .page-header h1, .page-header .label { opacity: 1; animation: none; }
+
+  /* Nav upgrades — disable all animations */
+  .nav.shrunk { height: var(--nav-height); }
+  .nav.shrunk .nav-logo { font-size: 2.8rem; }
+  .nav.nav-hidden { transform: none; }
+  .nav-logo:hover { transform: none; background-position: 100% center; filter: none; }
+  .nav-link::before { opacity: 0; }
+  .nav-link:hover::before, .nav-link.active::before { opacity: 1; transform: scale(1); }
+  .mobile-menu { clip-path: none; }
+  .mobile-menu.open { clip-path: none; }
+  .mobile-menu.open .nav-link,
+  .mobile-menu.open .btn { opacity: 1; transform: none; animation: none; }
 }
