@@ -1,0 +1,21 @@
+{
+  "name": "Executive Destiny Productions — Snobella",
+  "short_name": "Snobella",
+  "description": "WOSB-certified manufacturer of premium facial tissue and baby wipes. Detroit-made, nationally distributed.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#5E1613",
+  "theme_color": "#5E1613",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["business", "shopping"],
+  "lang": "en-US",
+  "dir": "ltr"
+}

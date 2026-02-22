@@ -35,10 +35,16 @@
     var scrollY = window.scrollY;
     var docHeight = document.documentElement.scrollHeight - window.innerHeight;
 
-    /* Scroll progress bar */
+    /* Scroll progress bar + percentage */
     if (scrollProgress) {
       var progress = docHeight > 0 ? scrollY / docHeight : 0;
       scrollProgress.style.transform = 'scaleX(' + progress + ')';
+    }
+    var progressPercent = document.querySelector('.scroll-progress-percent');
+    if (progressPercent) {
+      var pct = docHeight > 0 ? Math.round((scrollY / docHeight) * 100) : 0;
+      progressPercent.textContent = pct + '%';
+      progressPercent.classList.toggle('visible', scrollY > 100);
     }
 
     /* Sticky nav — scrolled + shrunk + hide/reveal */
@@ -510,6 +516,352 @@
   var yearEl = document.querySelector('.footer-year');
   if (yearEl) {
     yearEl.textContent = new Date().getFullYear();
+  }
+
+  /* ============================================
+     VALUE-ADD UPGRADES — Interactive
+     ============================================ */
+
+  /* --- Image Lightbox (products.html only) --- */
+  var lightbox = document.querySelector('.lightbox');
+  if (lightbox) {
+    var lightboxImg = lightbox.querySelector('.lightbox-image');
+    var lbCloseBtn = lightbox.querySelector('.lightbox-close');
+    var lbPrevBtn = lightbox.querySelector('.lightbox-prev');
+    var lbNextBtn = lightbox.querySelector('.lightbox-next');
+    var galleryImgs = document.querySelectorAll('.gallery-item img');
+    var lbIndex = 0;
+
+    function openLightbox(index) {
+      lbIndex = index;
+      var img = galleryImgs[lbIndex];
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt;
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      lbCloseBtn.focus();
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    function lbNext() {
+      lbIndex = (lbIndex + 1) % galleryImgs.length;
+      lightboxImg.src = galleryImgs[lbIndex].src;
+      lightboxImg.alt = galleryImgs[lbIndex].alt;
+    }
+
+    function lbPrev() {
+      lbIndex = (lbIndex - 1 + galleryImgs.length) % galleryImgs.length;
+      lightboxImg.src = galleryImgs[lbIndex].src;
+      lightboxImg.alt = galleryImgs[lbIndex].alt;
+    }
+
+    galleryImgs.forEach(function (img, i) {
+      img.parentElement.addEventListener('click', function () { openLightbox(i); });
+    });
+
+    lbCloseBtn.addEventListener('click', closeLightbox);
+    lbPrevBtn.addEventListener('click', lbPrev);
+    lbNextBtn.addEventListener('click', lbNext);
+
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (!lightbox.classList.contains('active')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') lbPrev();
+      if (e.key === 'ArrowRight') lbNext();
+    });
+
+    /* Touch swipe */
+    var lbTouchStartX = 0;
+    lightbox.addEventListener('touchstart', function (e) {
+      lbTouchStartX = e.touches[0].clientX;
+    }, { passive: true });
+
+    lightbox.addEventListener('touchend', function (e) {
+      var diff = lbTouchStartX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) lbNext(); else lbPrev();
+      }
+    });
+  }
+
+  /* --- Testimonial Auto-Rotation (index.html only) --- */
+  var testimonialGrid = document.querySelector('.testimonials-grid');
+  var tCards = document.querySelectorAll('.testimonial-card');
+  var tDots = document.querySelectorAll('.testimonial-dot');
+
+  if (tCards.length > 1 && tDots.length > 0 && window.innerWidth > 768) {
+    testimonialGrid.classList.add('rotating');
+    var tIndex = 0;
+    var tInterval = null;
+    var tPaused = false;
+
+    function showTestimonial(index) {
+      tCards.forEach(function (card) { card.classList.remove('active'); });
+      tDots.forEach(function (dot) { dot.classList.remove('active'); });
+      tCards[index].classList.add('active');
+      tDots[index].classList.add('active');
+    }
+
+    function nextTestimonial() {
+      if (tPaused) return;
+      tIndex = (tIndex + 1) % tCards.length;
+      showTestimonial(tIndex);
+    }
+
+    showTestimonial(0);
+
+    if (!prefersReducedMotion) {
+      tInterval = setInterval(nextTestimonial, 5000);
+    }
+
+    testimonialGrid.addEventListener('mouseenter', function () { tPaused = true; });
+    testimonialGrid.addEventListener('mouseleave', function () { tPaused = false; });
+
+    tDots.forEach(function (dot, i) {
+      dot.addEventListener('click', function () {
+        clearInterval(tInterval);
+        tIndex = i;
+        showTestimonial(tIndex);
+        tPaused = false;
+        if (!prefersReducedMotion) {
+          tInterval = setInterval(nextTestimonial, 5000);
+        }
+      });
+    });
+  }
+
+  /* ============================================
+     VISUAL UPGRADES — Phase 2 (JS-driven)
+     ============================================ */
+
+  /* Shared: detect reduced motion + touch device */
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  /* --- 6. Custom Branded Cursor --- */
+  if (!prefersReducedMotion && !isTouchDevice && window.innerWidth >= 769) {
+    var cursor = document.createElement('div');
+    cursor.className = 'custom-cursor';
+    document.body.appendChild(cursor);
+    document.body.classList.add('has-custom-cursor');
+
+    document.addEventListener('mousemove', function (e) {
+      cursor.style.left = e.clientX + 'px';
+      cursor.style.top = e.clientY + 'px';
+      if (!cursor.classList.contains('visible')) {
+        cursor.classList.add('visible');
+      }
+    });
+
+    /* Scale up on interactive elements */
+    var hoverTargets = document.querySelectorAll('a, button, .btn, .product-card, .gallery-item');
+    hoverTargets.forEach(function (el) {
+      el.addEventListener('mouseenter', function () {
+        cursor.classList.add('cursor-hover');
+      });
+      el.addEventListener('mouseleave', function () {
+        cursor.classList.remove('cursor-hover');
+      });
+    });
+  }
+
+  /* --- 7. Product Card 3D Tilt --- */
+  if (!prefersReducedMotion && !isTouchDevice) {
+    var tiltCards = document.querySelectorAll('.product-card');
+    tiltCards.forEach(function (card) {
+      /* Add shine overlay */
+      var shine = document.createElement('div');
+      shine.className = 'tilt-shine';
+      card.appendChild(shine);
+
+      card.addEventListener('mousemove', function (e) {
+        var rect = card.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+        var centerX = rect.width / 2;
+        var centerY = rect.height / 2;
+        /* Max ±8 degrees rotation */
+        var rotateY = ((x - centerX) / centerX) * 8;
+        var rotateX = ((centerY - y) / centerY) * 8;
+        card.style.transform = 'perspective(800px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg)';
+        /* Move shine to follow cursor */
+        shine.style.background = 'radial-gradient(circle at ' + x + 'px ' + y + 'px, rgba(255,255,255,0.18), transparent 60%)';
+      });
+
+      card.addEventListener('mouseleave', function () {
+        card.style.transform = '';
+        card.style.transition = 'transform 0.4s var(--ease-out)';
+        setTimeout(function () {
+          card.style.transition = '';
+        }, 400);
+      });
+    });
+  }
+
+  /* --- 8. Hero Text Split Reveals --- */
+  if (!prefersReducedMotion) {
+    var heroH1 = document.querySelector('.hero-content h1');
+    if (heroH1) {
+      /* Split text into word spans, preserving .accent spans */
+      var wordSpans = [];
+      var childNodes = Array.prototype.slice.call(heroH1.childNodes);
+
+      function processNode(node) {
+        if (node.nodeType === 3) {
+          /* Text node — split into words */
+          var words = node.textContent.split(/\s+/).filter(function (w) { return w.length > 0; });
+          words.forEach(function (word) {
+            var span = document.createElement('span');
+            span.className = 'hero-word';
+            span.textContent = word;
+            wordSpans.push(span);
+          });
+        } else if (node.nodeType === 1) {
+          /* Element node (e.g., .accent span) — wrap as one word unit */
+          var wrapper = document.createElement('span');
+          wrapper.className = 'hero-word';
+          var clone = node.cloneNode(true);
+          wrapper.appendChild(clone);
+          wordSpans.push(wrapper);
+        }
+      }
+
+      childNodes.forEach(processNode);
+
+      /* Clear h1 and rebuild with word spans */
+      while (heroH1.firstChild) {
+        heroH1.removeChild(heroH1.firstChild);
+      }
+      /* Disable existing h1 animation */
+      heroH1.style.animation = 'none';
+      heroH1.style.opacity = '1';
+      wordSpans.forEach(function (span) {
+        heroH1.appendChild(span);
+      });
+
+      /* Stagger reveal after page loader completes */
+      var splitDelay = loader ? 900 : 300;
+      setTimeout(function () {
+        wordSpans.forEach(function (span, i) {
+          setTimeout(function () {
+            span.classList.add('visible');
+          }, i * 80);
+        });
+      }, splitDelay);
+    }
+  }
+
+  /* --- 9. Magnetic Buttons --- */
+  if (!prefersReducedMotion && !isTouchDevice) {
+    var magneticBtns = document.querySelectorAll('.hero-buttons .btn, .cta-buttons .btn');
+    magneticBtns.forEach(function (btn) {
+      btn.classList.add('btn-magnetic');
+
+      btn.addEventListener('mousemove', function (e) {
+        var rect = btn.getBoundingClientRect();
+        var btnCenterX = rect.left + rect.width / 2;
+        var btnCenterY = rect.top + rect.height / 2;
+        var distX = e.clientX - btnCenterX;
+        var distY = e.clientY - btnCenterY;
+        var distance = Math.sqrt(distX * distX + distY * distY);
+        var maxDist = 100;
+        if (distance < maxDist) {
+          var strength = (1 - distance / maxDist) * 8;
+          var moveX = (distX / distance) * strength;
+          var moveY = (distY / distance) * strength;
+          btn.style.transform = 'translate(' + moveX + 'px, ' + moveY + 'px)';
+        }
+      });
+
+      btn.addEventListener('mouseleave', function () {
+        btn.style.transform = '';
+      });
+    });
+  }
+
+  /* --- 10. Parallax Depth Layers --- */
+  if (!prefersReducedMotion) {
+    var heroFloatShapes = document.querySelectorAll('.hero-float-shape');
+    var parallaxSpeeds = [-0.15, -0.08, -0.12];
+
+    if (heroFloatShapes.length > 0) {
+      window.addEventListener('scroll', function () {
+        var scrollY = window.scrollY;
+        /* Only calculate when hero is visible (first screenful) */
+        if (scrollY > window.innerHeight * 1.5) return;
+        heroFloatShapes.forEach(function (shape, i) {
+          var speed = parallaxSpeeds[i] || -0.1;
+          shape.style.transform = 'translateY(' + (scrollY * speed) + 'px)';
+        });
+      }, { passive: true });
+    }
+  }
+
+  /* ============================================
+     ADVANCED FEATURES — Phase 3
+     ============================================ */
+
+  /* --- Dark Mode Toggle --- */
+  var dmToggle = document.querySelector('.dark-mode-toggle');
+  if (dmToggle) {
+    var savedTheme = localStorage.getItem('theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var currentTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    dmToggle.setAttribute('aria-pressed', currentTheme === 'dark' ? 'true' : 'false');
+
+    dmToggle.addEventListener('click', function () {
+      var theme = document.documentElement.getAttribute('data-theme');
+      var newTheme = theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      dmToggle.setAttribute('aria-pressed', newTheme === 'dark' ? 'true' : 'false');
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+      if (!localStorage.getItem('theme')) {
+        var newTheme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        dmToggle.setAttribute('aria-pressed', newTheme === 'dark' ? 'true' : 'false');
+      }
+    });
+  }
+
+  /* --- Page Transition Effects --- */
+  if (!prefersReducedMotion) {
+    document.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function (e) {
+        var href = link.getAttribute('href');
+        if (!href) return;
+        /* Skip anchor links, external links, new-tab links */
+        if (href.startsWith('#')) return;
+        if (href.startsWith('http') || href.startsWith('//')) return;
+        if (link.getAttribute('target') === '_blank') return;
+        if (href.startsWith('mailto:') || href.startsWith('tel:')) return;
+
+        e.preventDefault();
+        document.body.classList.add('page-transitioning');
+        setTimeout(function () {
+          window.location.href = href;
+        }, 300);
+      });
+    });
+  }
+
+  /* --- Service Worker Registration --- */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
+    });
   }
 
 })();
